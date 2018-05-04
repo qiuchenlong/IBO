@@ -111,7 +111,7 @@ class DamaoSpider(scrapy.Spider):
         url_next_page = "http://www.9zdm.com" + next_page[len(next_page) - 2]
         print("下一页地址：" + url_next_page)
 
-        yield scrapy.Request(url=url_next_page, callback=self.parse)
+        # yield scrapy.Request(url=url_next_page, callback=self.parse)
 
 
 
@@ -131,16 +131,18 @@ class DamaoSpider(scrapy.Spider):
         hxs = HtmlXPathSelector(response)
         # 电影名称
         movie_name = hxs.select('//h3[@class="movie-title"]/text()').extract()
-        self.item["name"] = movie_name[0]
+        # self.item["name"] = movie_name[0] 由于爬虫是异步进行的，所以废弃在这里赋属性值
 
         # 播放器请求地址
         player_url = hxs.select('//div[@class="player"]/iframe/@src').extract()
         print("player_url", player_url)
 
-        yield scrapy.Request(player_url[0], callback=self.parse2)
+        yield scrapy.Request(player_url[0], meta={'movie_name': movie_name[0]}, callback=self.parse2)
 
 
     def parse2(self, response):
+        movie_name = response.meta['movie_name']
+
         hxs = HtmlXPathSelector(response)
 
         # 二次解析播放器地址
@@ -149,7 +151,7 @@ class DamaoSpider(scrapy.Spider):
 
         if len(player_url):
             if "youku/" in player_url[0]:
-                yield scrapy.Request(player_url[0], callback=self.parse3)
+                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse3)
 
             # type : youku pptv mgtv
             if "guhuo/a2.php" in player_url[0] or \
@@ -157,14 +159,14 @@ class DamaoSpider(scrapy.Spider):
                     ("guhuo/" in player_url[0] and "&type=pptv" in player_url[0]) or \
                     ("guhuo/" in player_url[0]) \
                     :
-                yield scrapy.Request(player_url[0], callback=self.parse_guhuo_play_url)
+                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url)
 
             # a1 优酷视频
             # a3 西瓜视频
             if "mp4/a1.php" in player_url[0] or \
                     "guhuo/a3.php" in player_url[0] or \
                     "mp4/a2.php" in player_url[0]:  # 优酷电影 | 腾讯视频
-                yield scrapy.Request(player_url[0], callback=self.parse_guhuo_play_url_a3)
+                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url_a3)
 
             # 爱奇艺
             if "api.47ks.com/webcloud/" in player_url[
@@ -184,7 +186,7 @@ class DamaoSpider(scrapy.Spider):
 
                 r = requests.get('https://api.47ks.com/webcloud/?v=http://www.iqiyi.com/v_19rrc9xgk0.html', data=data,
                                  headers=headers)
-                self.parse_aiqiyi_play_url(r)
+                self.parse_aiqiyi_play_url(movie_name, r)
 
                 # k4 = md5(cache.toString() + vd.toString() + document.domain + md5('41d785ff9079cee021d2bb9d715f7582'));
 
@@ -197,7 +199,9 @@ class DamaoSpider(scrapy.Spider):
                 # print('\x2b\x6d\x64\x35\x28\x27\x34\x31\x64\x37\x38\x35\x66\x66\x39\x30\x37\x39\x63\x65\x65\x30\x32\x31\x64\x32\x62\x62\x39\x64\x37\x31\x35\x66\x37\x35\x38\x32\x27\x29')
 
     # http://www.9zdm.com/show/41903.html
-    def parse_aiqiyi_play_url(self, response):
+    def parse_aiqiyi_play_url(self, movie_name, response):
+        self.item['name'] = movie_name
+
         c = response.text
         print(c)
         c = str(c).strip()
@@ -416,7 +420,13 @@ class DamaoSpider(scrapy.Spider):
         rtmp_video_url = result['url']
         print("1最终的视频地址", rtmp_video_url)
 
+        self.item["url"] = rtmp_video_url
+        yield self.item
+
+
     def parse3(self, response):
+        self.item['name'] = response.meta['movie_name']
+
         hxs = HtmlXPathSelector(response)
         hd_md5 = hxs.select('//input[@id="hdMd5"]/@value').extract()
 
@@ -484,7 +494,7 @@ class DamaoSpider(scrapy.Spider):
         # item = IboProjectItem()
         self.item["url"] = urllib.parse.unquote(rtmp_video_url)
 
-        # yield self.item
+        yield self.item
 
         # print("hd_md5", hd_md5)
 
@@ -496,6 +506,7 @@ class DamaoSpider(scrapy.Spider):
         # print(bit.encode("utf-8"))
 
     def parse_guhuo_play_url(self, response):
+        self.item['name'] = response.meta['movie_name']
 
         c = response.text
 
@@ -559,10 +570,12 @@ class DamaoSpider(scrapy.Spider):
 
             self.item["url"] = rtmp_video_url
 
-            # yield self.item
+            yield self.item
 
     # （西瓜视频）今日头条
     def parse_guhuo_play_url_a3(self, response):
+        self.item['name'] = response.meta['movie_name']
+
         c = response.text
         c = c.replace("\n", "").replace("\r", "")
         pattern = r'(.*)var vid="(.*?)"(.*)'
@@ -572,7 +585,7 @@ class DamaoSpider(scrapy.Spider):
             xiguo_video_url = matchObj.group(2)
             print("2最终的视频地址", xiguo_video_url)
             self.item["url"] = xiguo_video_url
-            # yield self.item
+            yield self.item
 
 # print(1)
 # jsstr = get_js()
