@@ -4,6 +4,18 @@
 
 **Copyright(c) __ten.com__. All rights reserved.**
 
+
+- 依赖包
+  - 生成依赖包
+  ```bash
+  pip3 freeze >requirements.txt
+  ```
+  - 安装依赖包
+  ```bash
+  pip3 install -r requirements.txt
+  ```
+
+
 - Tag
   - Android智能电视平台
   - 各大卫视直播
