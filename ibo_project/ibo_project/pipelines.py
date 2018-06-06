@@ -11,7 +11,10 @@ class IboProjectPipeline(object):
         # return item
         print('---', item)
         with open("damao.txt", 'a') as fp:
-            fp.write(item['name'] + " : " + item['url'] + '\n')
+            fp.write(item['type'] + " : " +
+                     item['name'] + " : " +
+                     item['url'] +
+                     '\n')
 
 
 class MoviePipeline(object):

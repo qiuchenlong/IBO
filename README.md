@@ -26,3 +26,12 @@ docker + （nginx + django + mongodb） + scrapy
 
 
 
+- 视频源
+  - 爱奇艺
+  - 优酷
+  - 西瓜视频（今日头条）
+  - 腾讯视频
+  - pptv（聚力视频）
+  - mgtv（芒果视频）
+
+

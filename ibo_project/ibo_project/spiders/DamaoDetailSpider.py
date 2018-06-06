@@ -13,7 +13,7 @@ from ..items import IboProjectItem
 # 执行本地的js
 def get_js():
     # f = open("D:/WorkSpace/MyWorkSpace/jsdemo/js/des_rsa.js",'r',encoding='UTF-8')
-    f = open(os.path.abspath("") + "/ibo_project/js/tools.js", 'r', encoding='UTF-8')
+    f = open(os.path.abspath("") + "/js/tools.js", 'r', encoding='UTF-8')
     line = f.readline()
     htmlstr = ''
     while line:
@@ -56,11 +56,24 @@ def get_js4():
 
 
 
+def get_js5():
+    # f = open("D:/WorkSpace/MyWorkSpace/jsdemo/js/des_rsa.js",'r',encoding='UTF-8')
+    f = open(os.path.abspath("") + "/js/weparser.js", 'r', encoding='UTF-8')
+    line = f.readline()
+    htmlstr = ''
+    while line:
+        htmlstr = htmlstr + line
+        line = f.readline()
+    return htmlstr
+
+
+
 class DamaoDetailSpider(scrapy.Spider):
     name = "damao_detail"
     allowed_domain = ["9zdm.com"]
     start_urls = [
-        "http://www.9zdm.com/play/39260.html",
+        "http://www.9zdm.com/play/42298.html",
+        # "http://www.9zdm.com/play/39260.html",
         # "http://www.7nmg.com/play/39260.html",
         # "http://www.9zdm.com/play/41903.html",
     ]
@@ -70,8 +83,8 @@ class DamaoDetailSpider(scrapy.Spider):
     def parse(self, response):
         # current_url = response.url
         # body = response.body
-        # unicode_body = response.body_as_unicode()
-        # print("damao", unicode_body)
+        unicode_body = response.body_as_unicode()
+        print("damao", unicode_body)
 
         print(type(response))
         hxs = HtmlXPathSelector(response)
@@ -85,9 +98,12 @@ class DamaoDetailSpider(scrapy.Spider):
         print("player_url", player_url)
 
 
+        player_url = hxs.select('//div[@class="player"]/script/@src').extract()
 
 
-        yield scrapy.Request(player_url[0], callback=self.parse2)
+
+
+        yield scrapy.Request(player_url[0], callback=self.parse1) #player_url[0]
 
 
         # resp = requests.get(player_url[0]).text
@@ -120,6 +136,17 @@ class DamaoDetailSpider(scrapy.Spider):
         #         #     urllib.request.urlretrieve(ab_src, work_path + file_name)
         #         # except:
         #         #     pass
+
+
+    def parse1(self, response):
+        result_text = response.text
+        player_url_pa = r'(.*?)src="(.*?)"'
+        player_url_maObj = re.match(player_url_pa, result_text, re.M | re.I)
+        player_url_value = player_url_maObj.group(2)
+        print(player_url_value)
+        yield scrapy.Request(player_url_value, callback=self.parse2) #player_url[0]
+
+
 
 
     def parse2(self, response):
@@ -486,22 +513,119 @@ class DamaoDetailSpider(scrapy.Spider):
         hd_md5 = ctx.call('sign', hd_md5)
 
         json_date["md5"] = hd_md5
+        json_date['siteuser'] = ''
+        json_date['lg'] = ''
 
         result = requests.post(base_url, json_date).json()
 
         rtmp_video_url = result['url']
 
-        print(urllib.parse.unquote(rtmp_video_url))
+        # print(urllib.parse.unquote(rtmp_video_url))
+
+
+        if json_date['type'] == 'qq':
+            base_qq_url = "https://vd.l.qq.com/proxyhttp"
+
+            headers = {
+                'accept': 'application/json, text/javascript, */*; q=0.01',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'content-type': 'text/plain',
+                'content-length': '550',
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36',
+                'cookie': 'pgv_pvi=4504784896; pt2gguin=o0601976246; RK=3Rzs+wG1eu; ptcz=e98f61615ba4c6aa4e70e1e4a5cf6b174bebd73f2fabbc5691f7a0ad2bf41b35; pgv_pvid=7683826970; tvfe_boss_uuid=7daf133e479c1cf4; o_cookie=601976246; appuser=B0480BF95DD352D1; o_minduid=5EWheGiDVHv2uEk55bfR-i1VVz0W46Bq; sd_userid=23521523893469719; sd_cookie_crttime=1523893469719; cm_cookie=V1,110120&5766165399930835655&AQEBOrIuZJ7k3OPDUykKNSK5C_AtyZDbnW5b&180318&180318,110061&a5a991f498fae94&1fqDep_XvbUtYZdntJO0Xn92-Nu2DiQA2oJP2LysEHJe1NQhOQE69gIwSyQkzFPO&180331&180331,10027&152163371542592&AQEBNByPQGnyVvfUCKGISrQeddhGiPcRV72B&180411&180411,10016&G1LIOs21cjIy&AQEBNByPQGnyVvdOXyDRhjL_6Xutc7hWFvrW&180416&180416,110066&iQTxe0iFrk40&AQEBr1pXxmm7w4EmNXp3l0WpmrPuBUWNwPkw&180318&180422,110012&9FMU8Dyd&AQEB5wmB8OE6uVP01kl75LzEGcExKdfTPfM7&180318&180429,10012&9FMU8Dyd&AQEBOz16cbmqIgef3Cq4gT1lAed9zwEL-HfI&180318&180429,110065&6nlVbcUUEr&AQEBxl3JxingyrSAT4PYHfHisHMsdJrBO_m1&180318&180504',
+                # 'x-requested-with': 'XMLHttpRequest',
+                'origin': 'https://apis.tianxianle.com',
+                # 'referer': 'https://api.47ks.com/webcloud/?v=http://www.iqiyi.com/v_19rrc9xgk0.html'
+            }
+
+            js5str = get_js5()
+            ctx5 = execjs.compile(js5str)
+
+            g = ctx5.call('weParser.qq.gettime')
+            h = ctx5.call('weParser.qq.createGUID')
+
+            # print("qq.gettime", ctx5.call('weParser.qq.gettime'))
+            # print("qq.createGUID", ctx5.call('weParser.qq.createGUID'))
+
+            # g = "1525594141"
+            # h = "d49206cdf71fcf092c87e2032679b7e2"
+            i = '10201'
+            j = 'v1010'
+
+            vid = result['vid']
+
+            vinfoparam = {
+                'charge': 0,
+                'defaultfmt': 'auto',
+                'otype': 'json',
+                'guid': h, #   ======
+                'flowid': ctx5.call('weParser.qq.createGUID') + "_" + i, #weParser.qq.createGUID() + '_' + i      ======
+                'platform': i,
+                'sdtfrom': j,
+                'defnpayver': 1,
+                'appVer': '3.5.41',
+                'host': 'film.qq.com',
+                'refer': urllib.parse.quote('http://film.qq.com/film_index_prevue/index.html?firstVid=' + vid), #params.vid
+                'ehost': urllib.parse.quote('http://film.qq.com/film_index_prevue/index.html'),
+                'sphttps': 1,
+                'tm': g, #g    ======
+                'spwm': 4,
+                'vid': vid, #params.vid
+                'defn': 'mp4',
+                'fhdswitch': 0,
+                'show1080p': 0,
+                'isHLS': 1,
+                'dtype': 3,
+                'defsrc': 1,
+                'encryptVer': ctx5.call('weParser.qq.getencrypt'), #weParser.qq.getencrypt()
+                'cKey': ctx5.call('weParser.qq.ckey7', vid, g, i) # weParser.qq.ckey7(params.vid, g, i)     ======
+            }
+
+            # "charge=0&defaultfmt=auto&otype=json&guid=d85db85ba76bc0c974fc99017133d90b&flowid=85c214e827853b2a80f1f78a8edf0b5b_10201&platform=10201&sdtfrom=v1010&defnpayver=1&appVer=3.5.41&host=film.qq.com&refer=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html%3FfirstVid%3Dx00262vbmzt&ehost=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html&sphttps=1&tm=1525595142&spwm=4&vid=x00262vbmzt&defn=mp4&fhdswitch=0&show1080p=0&isHLS=1&dtype=3&defsrc=1&encryptVer=7.7&cKey=0e2aba5416201057faf3a48dbfb8f4e9"
+
+            import json
+            data = {"adparam":"","buid":"vinfoad","vinfoparam": json.dumps(vinfoparam).replace(":", "=").replace("\"", "").replace("{", "").replace("}", "").replace(" ", "").replace(",", "&")}
+
+
+            # data = {"adparam":"","buid":"vinfoad","vinfoparam":"charge=0&defaultfmt=auto&otype=json&guid=afd8bdad673d29767f0796884d6b088b&flowid=66c63eacf47882648c767f1743b9f375_10201&platform=10201&sdtfrom=v1010&defnpayver=1&appVer=3.5.41&host=film.qq.com&refer=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html%3FfirstVid%3Dx00262vbmzt&ehost=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html&sphttps=1&tm=1526133883&spwm=4&vid=x00262vbmzt&defn=mp4&fhdswitch=0&show1080p=0&isHLS=1&dtype=3&defsrc=1&encryptVer=7.6&cKey=c2dc999cd008ef9d2f251bf78d7e1156"}
+
+            # r = requests.post(base_qq_url, json=data)
+            # self.parse_youku_type_qq(r)
+            # print(r.text)
+            yield scrapy.Request(base_qq_url, method="POST", body=json.dumps(data), headers={'Content-Type': 'application/json'}, callback=self.parse_youku_type_qq)
+        else:
+            # item = IboProjectItem()
+            self.item["url"] = urllib.parse.unquote(rtmp_video_url)
+
+            yield self.item
 
 
 
-        # item = IboProjectItem()
-        self.item["url"] = urllib.parse.unquote(rtmp_video_url)
 
+
+    def parse_youku_type_qq(self, response):
+        print(response.text)
+
+        import json
+
+        # result_json = response.json()
+        result_json = json.loads(response.text)
+        vinfo_json = result_json['vinfo']
+        qzoutput_string = vinfo_json[len("QZOutputJson=") : len(vinfo_json) - 1]
+
+        # print(qzoutput_string)
+        qzoutput_json = json.loads(qzoutput_string)
+
+        url = qzoutput_json['vl']['vi'][0]['ul']['ui'][0]['url']
+        hls_pname = qzoutput_json['vl']['vi'][0]['ul']['ui'][0]['hls']['pt']
+        print("qq视频:", url + hls_pname)
+
+        self.item['url'] = url + hls_pname
         yield self.item
 
 
-
+        # https://apd-fdd728be65e8449e29d1c88e9db5d38c.v.smtcdns.com/varietyts.tc.qq.com/ACZ9eGYI_8V6VE6hJ0FL4KTYbKk1jmWctXo_tldMwDcM/DGNfqzgjZ_lfYA5rWguGl2aPPJKRdvcafWe4QZeqQzAdUVldMzjjyYqZgJ7W_--UvEgf-th6E6LB3ose7H9mdAPh24CfEn_j_JW3cQHCA1xdecGDyXurE1uC3GxzPJGi83ezjix-x_-3Blz9BulZguU5SHYGJ9ZZ/q0026cqfwvv.321002.ts.m3u8?ver=4
 
 
 

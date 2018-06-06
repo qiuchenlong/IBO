@@ -53,15 +53,29 @@ def get_js4():
     return htmlstr
 
 
+def get_js5():
+    # f = open("D:/WorkSpace/MyWorkSpace/jsdemo/js/des_rsa.js",'r',encoding='UTF-8')
+    f = open(os.path.abspath("") + "/js/weparser.js", 'r', encoding='UTF-8')
+    line = f.readline()
+    htmlstr = ''
+    while line:
+        htmlstr = htmlstr + line
+        line = f.readline()
+    return htmlstr
+
+
 
 class DamaoSpider(scrapy.Spider):
     name = "damao"
-    allowed_domain = ["9zdm.com"]
+    allowed_domain = ["9zdm.com", "7nmg.com", "tianxianle.com"]
     start_urls = [
-        "http://www.9zdm.com/type/1/1.html",
+        # "http://www.9zdm.com/type/1/1.html",
+        "http://www.7nmg.com/type/1/1.html",
     ]
 
     item = IboProjectItem()
+
+    index = 0
 
     def __init__(self):
         print("初始化...")
@@ -90,28 +104,31 @@ class DamaoSpider(scrapy.Spider):
         for i in range(len(titles)):
             # print(titles[i] + " - " +links[i], "\n")
 
+            self.index += 1
 
-            showUrl = "{0}{1}".format("http://www.9zdm.com", links[i])
+            showUrl = "{0}{1}".format("http://www.7nmg.com", links[i])
             yield scrapy.Request(url=showUrl, callback=self.showDetailHandler)
 
 
             src = images[i]
             if src:
                 ab_src = src # "http://www.9zdm.com" +
-                file_name = "%s_%s_%s.jpg" % ("damao", i, titles[i])
+                file_name = "%s_%s_%s.jpg" % ("damao", self.index, titles[i])
                 dir = os.path.abspath('.')
-                work_path = os.path.join(dir, "ibo_project/downloads/")
+                work_path = os.path.join(dir, "downloads/")
 
-                # # 这个方法下载文件,并且file_name为文件
+                # 这个方法下载文件,并且file_name为文件
                 # try:
                 #     urllib.request.urlretrieve(ab_src, work_path + file_name)
                 # except:
+                #     print("error...")
                 #     pass
 
-        url_next_page = "http://www.9zdm.com" + next_page[len(next_page) - 2]
+        url_next_page = "http://www.7nmg.com" + next_page[len(next_page) - 2]
         print("下一页地址：" + url_next_page)
 
-        # yield scrapy.Request(url=url_next_page, callback=self.parse)
+        # 递归调用
+        yield scrapy.Request(url=url_next_page, callback=self.parse)
 
 
 
@@ -121,7 +138,7 @@ class DamaoSpider(scrapy.Spider):
         hxs = HtmlXPathSelector(response)
         # 播放详情链接
         link = hxs.select('//div[@class="online-button"]/a/@href').extract()
-        playerUrl = "{0}{1}".format("http://www.9zdm.com", link[0])
+        playerUrl = "{0}{1}".format("http://www.7nmg.com", link[0])
         yield scrapy.Request(url=playerUrl, callback=self.playerDetailHandler)
 
 
@@ -137,8 +154,23 @@ class DamaoSpider(scrapy.Spider):
         player_url = hxs.select('//div[@class="player"]/iframe/@src').extract()
         print("player_url", player_url)
 
-        yield scrapy.Request(player_url[0], meta={'movie_name': movie_name[0]}, callback=self.parse2)
 
+        # 网站升级了，播放地址放入js文件中了
+        player_url = hxs.select('//div[@class="player"]/script/@src').extract()
+
+
+        yield scrapy.Request(player_url[0], meta={'movie_name': movie_name[0]}, callback=self.parse1)
+
+
+    def parse1(self, response):
+        movie_name = response.meta['movie_name']
+
+        result_text = response.text
+        player_url_pa = r'(.*?)src="(.*?)"'
+        player_url_maObj = re.match(player_url_pa, result_text, re.M | re.I)
+        player_url_value = player_url_maObj.group(2)
+        print(player_url_value)
+        yield scrapy.Request(player_url_value, meta={'movie_name': movie_name}, callback=self.parse2) #player_url[0]
 
     def parse2(self, response):
         movie_name = response.meta['movie_name']
@@ -159,14 +191,15 @@ class DamaoSpider(scrapy.Spider):
                     ("guhuo/" in player_url[0] and "&type=pptv" in player_url[0]) or \
                     ("guhuo/" in player_url[0]) \
                     :
-                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url)
+                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url, dont_filter=True)
 
             # a1 优酷视频
             # a3 西瓜视频
             if "mp4/a1.php" in player_url[0] or \
                     "guhuo/a3.php" in player_url[0] or \
                     "mp4/a2.php" in player_url[0]:  # 优酷电影 | 腾讯视频
-                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url_a3)
+                yield scrapy.Request(player_url[0], meta={'movie_name': movie_name}, callback=self.parse_guhuo_play_url_a3, dont_filter=True)
+
 
             # 爱奇艺
             if "api.47ks.com/webcloud/" in player_url[
@@ -187,6 +220,9 @@ class DamaoSpider(scrapy.Spider):
                 r = requests.get('https://api.47ks.com/webcloud/?v=http://www.iqiyi.com/v_19rrc9xgk0.html', data=data,
                                  headers=headers)
                 self.parse_aiqiyi_play_url(movie_name, r)
+
+
+
 
                 # k4 = md5(cache.toString() + vd.toString() + document.domain + md5('41d785ff9079cee021d2bb9d715f7582'));
 
@@ -421,11 +457,15 @@ class DamaoSpider(scrapy.Spider):
         print("1最终的视频地址", rtmp_video_url)
 
         self.item["url"] = rtmp_video_url
+        self.item['type'] = "爱奇艺视频"
         yield self.item
+
+
 
 
     def parse3(self, response):
         self.item['name'] = response.meta['movie_name']
+
 
         hxs = HtmlXPathSelector(response)
         hd_md5 = hxs.select('//input[@id="hdMd5"]/@value').extract()
@@ -435,8 +475,10 @@ class DamaoSpider(scrapy.Spider):
         c = str(c).strip()
         c = c.replace("\n", "")
 
+
+
         pattern = r'(.*)eval(.*?);'
-        matchObj = re.match(pattern, c, re.M | re.I)
+        matchObj = re.match(pattern, c, re.M|re.I)
         if matchObj:
             iStr = matchObj.group(2)
             iStr = eval(iStr)
@@ -449,8 +491,9 @@ class DamaoSpider(scrapy.Spider):
                 hd_md5 = eval(hd_md5)
                 print("hd_md5", hd_md5)
 
+
         pa = r'(.*)\$.post\((.*?), '
-        # , "type": (.*?), "siteuser": (.*?), "md5": (.*?), "hd": (.*?), "lg": (.*?), "iqiyicip": (.*?)}(.*?)
+        #, "type": (.*?), "siteuser": (.*?), "md5": (.*?), "hd": (.*?), "lg": (.*?), "iqiyicip": (.*?)}(.*?)
         # pa = pa.strip()
 
         maObj = re.match(pa, c, re.M | re.I)
@@ -461,22 +504,26 @@ class DamaoSpider(scrapy.Spider):
             print("matchObj", maObj.group(2))
             # print("matchObj", maObj.group(3))
 
+
         sStart = '"url.php", {'
         sEnd = 'iqiyicip},'
         iStart = c.find(sStart)
         iEnd = c.find(sEnd)
 
-        c = c[iStart + len(sStart): iEnd + len(sEnd)]
+        c = c[iStart + len(sStart) : iEnd + len(sEnd)]
 
         pa2 = r'(.*?):(.*?),'
 
         maObj2 = re.findall(pa2, c)
 
+
         json_date = dict()
         for m in maObj2:
             json_date[m[0].strip().replace('"', "")] = m[1].strip().replace('"', "").replace('}', '')
 
+
         base_url = "https://apis.tianxianle.com/youku/url.php"
+
 
         # 数字签名
         jsstr = get_js()
@@ -484,17 +531,123 @@ class DamaoSpider(scrapy.Spider):
         hd_md5 = ctx.call('sign', hd_md5)
 
         json_date["md5"] = hd_md5
+        json_date['siteuser'] = ''
+        json_date['lg'] = ''
 
         result = requests.post(base_url, json_date).json()
 
         rtmp_video_url = result['url']
 
-        print("4最终的视频地址", urllib.parse.unquote(rtmp_video_url))
+        # print(urllib.parse.unquote(rtmp_video_url))
 
-        # item = IboProjectItem()
-        self.item["url"] = urllib.parse.unquote(rtmp_video_url)
+
+        if json_date['type'] == 'qq':
+            base_qq_url = "https://vd.l.qq.com/proxyhttp"
+
+            headers = {
+                'accept': 'application/json, text/javascript, */*; q=0.01',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'content-type': 'text/plain',
+                'content-length': '550',
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36',
+                'cookie': 'pgv_pvi=4504784896; pt2gguin=o0601976246; RK=3Rzs+wG1eu; ptcz=e98f61615ba4c6aa4e70e1e4a5cf6b174bebd73f2fabbc5691f7a0ad2bf41b35; pgv_pvid=7683826970; tvfe_boss_uuid=7daf133e479c1cf4; o_cookie=601976246; appuser=B0480BF95DD352D1; o_minduid=5EWheGiDVHv2uEk55bfR-i1VVz0W46Bq; sd_userid=23521523893469719; sd_cookie_crttime=1523893469719; cm_cookie=V1,110120&5766165399930835655&AQEBOrIuZJ7k3OPDUykKNSK5C_AtyZDbnW5b&180318&180318,110061&a5a991f498fae94&1fqDep_XvbUtYZdntJO0Xn92-Nu2DiQA2oJP2LysEHJe1NQhOQE69gIwSyQkzFPO&180331&180331,10027&152163371542592&AQEBNByPQGnyVvfUCKGISrQeddhGiPcRV72B&180411&180411,10016&G1LIOs21cjIy&AQEBNByPQGnyVvdOXyDRhjL_6Xutc7hWFvrW&180416&180416,110066&iQTxe0iFrk40&AQEBr1pXxmm7w4EmNXp3l0WpmrPuBUWNwPkw&180318&180422,110012&9FMU8Dyd&AQEB5wmB8OE6uVP01kl75LzEGcExKdfTPfM7&180318&180429,10012&9FMU8Dyd&AQEBOz16cbmqIgef3Cq4gT1lAed9zwEL-HfI&180318&180429,110065&6nlVbcUUEr&AQEBxl3JxingyrSAT4PYHfHisHMsdJrBO_m1&180318&180504',
+                # 'x-requested-with': 'XMLHttpRequest',
+                'origin': 'https://apis.tianxianle.com',
+                # 'referer': 'https://api.47ks.com/webcloud/?v=http://www.iqiyi.com/v_19rrc9xgk0.html'
+            }
+
+            js5str = get_js5()
+            ctx5 = execjs.compile(js5str)
+
+            g = ctx5.call('weParser.qq.gettime')
+            h = ctx5.call('weParser.qq.createGUID')
+
+            # print("qq.gettime", ctx5.call('weParser.qq.gettime'))
+            # print("qq.createGUID", ctx5.call('weParser.qq.createGUID'))
+
+            # g = "1525594141"
+            # h = "d49206cdf71fcf092c87e2032679b7e2"
+            i = '10201'
+            j = 'v1010'
+
+            vid = result['vid']
+
+            vinfoparam = {
+                'charge': 0,
+                'defaultfmt': 'auto',
+                'otype': 'json',
+                'guid': h, #   ======
+                'flowid': ctx5.call('weParser.qq.createGUID') + "_" + i, #weParser.qq.createGUID() + '_' + i      ======
+                'platform': i,
+                'sdtfrom': j,
+                'defnpayver': 1,
+                'appVer': '3.5.41',
+                'host': 'film.qq.com',
+                'refer': urllib.parse.quote('http://film.qq.com/film_index_prevue/index.html?firstVid=' + vid), #params.vid
+                'ehost': urllib.parse.quote('http://film.qq.com/film_index_prevue/index.html'),
+                'sphttps': 1,
+                'tm': g, #g    ======
+                'spwm': 4,
+                'vid': vid, #params.vid
+                'defn': 'mp4',
+                'fhdswitch': 0,
+                'show1080p': 0,
+                'isHLS': 1,
+                'dtype': 3,
+                'defsrc': 1,
+                'encryptVer': ctx5.call('weParser.qq.getencrypt'), #weParser.qq.getencrypt()
+                'cKey': ctx5.call('weParser.qq.ckey7', vid, g, i) # weParser.qq.ckey7(params.vid, g, i)     ======
+            }
+
+            # "charge=0&defaultfmt=auto&otype=json&guid=d85db85ba76bc0c974fc99017133d90b&flowid=85c214e827853b2a80f1f78a8edf0b5b_10201&platform=10201&sdtfrom=v1010&defnpayver=1&appVer=3.5.41&host=film.qq.com&refer=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html%3FfirstVid%3Dx00262vbmzt&ehost=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html&sphttps=1&tm=1525595142&spwm=4&vid=x00262vbmzt&defn=mp4&fhdswitch=0&show1080p=0&isHLS=1&dtype=3&defsrc=1&encryptVer=7.7&cKey=0e2aba5416201057faf3a48dbfb8f4e9"
+
+            import json
+            data = {"adparam":"","buid":"vinfoad","vinfoparam": json.dumps(vinfoparam).replace(":", "=").replace("\"", "").replace("{", "").replace("}", "").replace(" ", "").replace(",", "&")}
+
+
+            # data = {"adparam":"","buid":"vinfoad","vinfoparam":"charge=0&defaultfmt=auto&otype=json&guid=afd8bdad673d29767f0796884d6b088b&flowid=66c63eacf47882648c767f1743b9f375_10201&platform=10201&sdtfrom=v1010&defnpayver=1&appVer=3.5.41&host=film.qq.com&refer=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html%3FfirstVid%3Dx00262vbmzt&ehost=http%3A%2F%2Ffilm.qq.com%2Ffilm_index_prevue%2Findex.html&sphttps=1&tm=1526133883&spwm=4&vid=x00262vbmzt&defn=mp4&fhdswitch=0&show1080p=0&isHLS=1&dtype=3&defsrc=1&encryptVer=7.6&cKey=c2dc999cd008ef9d2f251bf78d7e1156"}
+
+            # r = requests.post(base_qq_url, json=data)
+            # self.parse_youku_type_qq(r)
+            # print(r.text)
+            yield scrapy.Request(base_qq_url, method="POST", body=json.dumps(data), headers={'Content-Type': 'application/json'}, callback=self.parse_youku_type_qq)
+        else:
+            # item = IboProjectItem()
+            self.item["url"] = urllib.parse.unquote(rtmp_video_url)
+            self.item['type'] = "优酷视频"
+
+            yield self.item
+
+
+
+
+    def parse_youku_type_qq(self, response):
+        self.item['name'] = response.meta['movie_name']
+
+        print(response.text)
+
+        import json
+
+        # result_json = response.json()
+        result_json = json.loads(response.text)
+        vinfo_json = result_json['vinfo']
+        qzoutput_string = vinfo_json[len("QZOutputJson=") : len(vinfo_json) - 1]
+
+        # print(qzoutput_string)
+        qzoutput_json = json.loads(qzoutput_string)
+
+        url = qzoutput_json['vl']['vi'][0]['ul']['ui'][0]['url']
+        hls_pname = qzoutput_json['vl']['vi'][0]['ul']['ui'][0]['hls']['pt']
+        print("qq视频:", url + hls_pname)
+
+        self.item['url'] = url + hls_pname
+        self.item['type'] = "腾讯视频"
 
         yield self.item
+
+
+        # https://apd-fdd728be65e8449e29d1c88e9db5d38c.v.smtcdns.com/varietyts.tc.qq.com/ACZ9eGYI_8V6VE6hJ0FL4KTYbKk1jmWctXo_tldMwDcM/DGNfqzgjZ_lfYA5rWguGl2aPPJKRdvcafWe4QZeqQzAdUVldMzjjyYqZgJ7W_--UvEgf-th6E6LB3ose7H9mdAPh24CfEn_j_JW3cQHCA1xdecGDyXurE1uC3GxzPJGi83ezjix-x_-3Blz9BulZguU5SHYGJ9ZZ/q0026cqfwvv.321002.ts.m3u8?ver=4
 
         # print("hd_md5", hd_md5)
 
@@ -505,6 +658,11 @@ class DamaoSpider(scrapy.Spider):
         # print(bytes(bit).decode("utf-8"))
         # print(bit.encode("utf-8"))
 
+
+
+
+
+    # 以 cache.m.iqiyi.com 域名开头的视频，解析还不正确
     def parse_guhuo_play_url(self, response):
         self.item['name'] = response.meta['movie_name']
 
@@ -569,8 +727,12 @@ class DamaoSpider(scrapy.Spider):
             print("3最终的视频地址", rtmp_video_url)
 
             self.item["url"] = rtmp_video_url
+            self.item['type'] = "芒果视频"
 
             yield self.item
+
+
+
 
     # （西瓜视频）今日头条
     def parse_guhuo_play_url_a3(self, response):
@@ -585,6 +747,7 @@ class DamaoSpider(scrapy.Spider):
             xiguo_video_url = matchObj.group(2)
             print("2最终的视频地址", xiguo_video_url)
             self.item["url"] = xiguo_video_url
+            self.item['type'] = "西瓜视频"
             yield self.item
 
 # print(1)

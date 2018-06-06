@@ -91,7 +91,7 @@ ROBOTSTXT_OBEY = True
 
 # ITEM_PIPELINES = {'ibo_project.pipelines.MoviePipeline': 100}
 
-ITEM_PIPELINES = {'ibo_project.pipelines.IboProjectPipeline': 100}
+ITEM_PIPELINES = {'ibo_project.pipelines.IboProjectPipeline': 20}
 
 # DEFAULT_REQUEST_HEADERS = {
 #     'accept': 'image/webp,*/*;q=0.8',
