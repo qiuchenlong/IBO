@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ToggleButtonBase">
+        <attr name="image" format="reference"/>
+        <attr name="imageOff" format="reference"/>
+        <attr name="imageOn" format="reference"/>
+        <attr name="textOff" format="string"/>
+        <attr name="textOn" format="string"/>
+        <attr name="desc" format="string"/>
+        <attr name="bindTo" format="reference"/>
+        <attr name="onCheckedChanged" format="string"/>
+    </declare-styleable>
+
+</resources>

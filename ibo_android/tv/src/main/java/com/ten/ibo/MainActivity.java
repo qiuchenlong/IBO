@@ -17,11 +17,13 @@ package com.ten.ibo;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -31,6 +33,8 @@ import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 //import com.ten.ibo.widget.ITextureView;
+
+import com.ten.ibo.widget.togglebutton.ToggleButtonBase;
 
 import java.io.IOException;
 
@@ -42,10 +46,22 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private Context mContext;
     private RelativeLayout mParent;
 //    private ITextureView mITextureView;
+
+//    private String videoUrl = "http://ivi.bupt.edu.cn/hls/cctv5.m3u8"; //http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
+//    private String videoUrl = "http://ivi.bupt.edu.cn/hls/cctv5hd.m3u8"; //http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
+//    private String videoUrl = "http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
+    private String videoUrl = "http://vd3.bdstatic.com/mda-ig0wemib2civ2hfe/sc/mda-ig0wemib2civ2hfe.mp4";
+
+
     MediaPlayer mediaPlayer;
     VideoView videoView;
-
     SurfaceView surfaceView;
+
+    public static void show(Context context, int type) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("type", type);
+        context.startActivity(intent);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,16 +69,21 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         setContentView(R.layout.activity_main);
         mContext = getBaseContext();
 
-
-//        videoView = findViewById(R.id.videoview);
-//        playByVideoView();
+        int type = getIntent().getIntExtra("type", 1);
 
 
-//        initview();
-
-
-
-        initSurfaceView();
+        switch (type) {
+            case 1:
+                videoView = findViewById(R.id.videoview);
+                playByVideoView();
+                break;
+            case 2:
+                initview();
+                break;
+            case 3:
+                initSurfaceView();
+                break;
+        }
 
 
     }
@@ -76,7 +97,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 
     private void playByVideoView() {
-        String url = "http://mvvideo11.meitudata.com/5aead8bd19a067284.mp4?k=79b53f314aca64e039ef4e055b6e62f0&t=5b1a9f6b";//"http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4";
+        String url = videoUrl;//"http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4";
         videoView.setVideoURI(Uri.parse(url));
         videoView.start();
     }
@@ -144,18 +165,40 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void playVideo(String url) {
         try {
+
+            mediaPlayer.reset();
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mediaPlayer.start();
+                }
+            });
+
             mediaPlayer.setDataSource(this, Uri.parse(url));
-            mediaPlayer.prepare();
-            mediaPlayer.start();} catch (IOException e) {e.printStackTrace();}
+//            mediaPlayer.prepare(); // 同步
+            mediaPlayer.prepareAsync(); // 异步
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+
+//        holder.setType(SurfaceHolder.SURFACE_TYPE_GPU);
+//        holder.setType(SurfaceHolder.SURFACE_TYPE_HARDWARE);
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+
         mediaPlayer = new MediaPlayer();
 //        mediaPlayer.setOnVideoSizeChangedListener(this);
         mediaPlayer.setDisplay(holder);
 
-        playVideo("http://mvvideo11.meitudata.com/5aead8bd19a067284.mp4?k=79b53f314aca64e039ef4e055b6e62f0&t=5b1a9f6b");
+        playVideo(videoUrl);
+
 
     }
 
@@ -166,6 +209,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        super.onDestroy();
+//        if (mediaPlayer.isPlaying()) {
+//            mediaPlayer.stop();
+//        }
         mediaPlayer.release();
         mediaPlayer = null;
     }
@@ -187,7 +234,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     protected void play() {
         try {
-            String url = "http://mvvideo11.meitudata.com/5aead8bd19a067284.mp4?k=79b53f314aca64e039ef4e055b6e62f0&t=5b1a9f6b";//"https://disp.titan.mgtv.com/vod.do?fmt=4&pno=2210&fid=9D24CEA05FDB16879E7E2C4AA1269A19&file=/c1/2018/04/28_0/9D24CEA05FDB16879E7E2C4AA1269A19_20180428_1_1_1253.mp4";
+            String url = videoUrl;//"https://disp.titan.mgtv.com/vod.do?fmt=4&pno=2210&fid=9D24CEA05FDB16879E7E2C4AA1269A19&file=/c1/2018/04/28_0/9D24CEA05FDB16879E7E2C4AA1269A19_20180428_1_1_1253.mp4";
 //                String url = "http://wgdcnccdn.inter.qiyi.com/videos/v0/20180429/a9/8a/89fdb5bcc5d1e5babb36322830dd38c0.f4v?key=0b1eb3059afdb8d84feb217638ee40670&dis_k=8235bcfd3011a0e2af9ad8c687d6c697&dis_t=1525067439&src=iqiyi.com&uuid=af2ac1ab-5ae6aeaf-8c&rn=1525067439242&qd_ip=af2ac1ab&qyid=471806807baf0c157a7d9463726cf668&qd_tm=1525067435912&qd_vipdyn=0&cross-domain=1&pri_idc=netcnc_gd_cnc&pv=0.1&qd_aid=1021748700&qd_stert=0&qypid=1021748700_01080031010000000000&qd_p=af2ac1ab&qd_uid=0&qd_src=01010031010000000000&qd_index=1&qd_vip=0&qd_tvid=1021748700&qd_vipres=0&qd_k=a8ec7486285d5970dc0aadec00e63018";
 //                String url = "http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4";
             mediaPlayer.setDataSource(url);//添加播放地址
@@ -222,4 +269,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         super.onDestroy();
 
     }
+
+
+
 }

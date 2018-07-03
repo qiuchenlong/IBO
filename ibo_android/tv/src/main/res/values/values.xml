@@ -1171,4 +1171,5 @@
         <item name="android:paddingBottom">?attr/browsePaddingTop</item>
     </style>
     <style name="Widget.LeanbackBase" parent="android:Widget.Holo"/>
+
 </resources>

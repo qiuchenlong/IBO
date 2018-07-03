@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:layoutDirection="ltr"
+    android:orientation="vertical"
+    android:background="@drawable/mediaplayer_background_bottom"
+    android:paddingLeft="50dp"
+    android:paddingRight="50dp"
+    android:paddingBottom="50dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- dummy row (used for key catching) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="4dp"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
+        >
+
+        <com.ten.ibo.widget.togglebutton.TransparentButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+    </LinearLayout>
+
+    <!-- timebar row -->
+    <LinearLayout
+        android:id="@+id/time_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp">
+
+        <TextView android:id="@+id/exo_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:includeFontPadding="false"
+            android:textColor="#ffffff"/>
+
+        <!--<com.google.android.exoplayer2.ui.DefaultTimeBar-->
+            <!--android:id="@id/exo_progress"-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_weight="1"-->
+            <!--android:layout_height="26dp"-->
+            <!--app:played_color="@color/red"-->
+            <!--app:unplayed_color="@color/white_50"-->
+            <!--app:buffered_color="@color/white"-->
+            <!--app:scrubber_color="@color/white"/>-->
+
+        <TextView android:id="@+id/exo_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:includeFontPadding="false"
+            android:textColor="#ffffff"/>
+
+    </LinearLayout>
+    <!-- end timebar row -->
+
+    <!-- player's controls row -->
+    <FrameLayout
+        android:id="@+id/buttons_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:orientation="horizontal"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.ten.ibo.widget.togglebutton.LayoutToggleButton
+                android:id="@+id/player_options_btn"
+                style="@style/ExoMediaButton2.Options"/>
+
+            <com.ten.ibo.widget.togglebutton.LayoutToggleButton
+                android:id="@+id/player_quality_btn"
+                style="@style/ExoMediaButton2.Quality"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_prev"
+                style="@style/ExoMediaButton2.Previous"/>
+
+            <!-- NOTE: must be ImageButton (not visible) -->
+            <ImageButton
+                android:id="@+id/exo_repeat_toggle"
+                style="@style/ExoMediaButton2"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_play"
+                style="@style/ExoMediaButton2.Play"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_pause"
+                style="@style/ExoMediaButton2.Pause"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_next"
+                style="@style/ExoMediaButton2.Next"
+                app:onCheckedChanged="onCheckedChanged"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/player_options_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:visibility="gone"
+                android:id="@+id/exo_user"
+                style="@style/ExoMediaButton2.User"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_share"
+                style="@style/ExoMediaButton2.Share"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_captions"
+                style="@style/ExoMediaButton2.Captions"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_like"
+                app:bindTo="@+id/exo_dislike"
+                style="@style/ExoMediaButton2.Like"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_dislike"
+                app:bindTo="@+id/exo_like"
+                style="@style/ExoMediaButton2.Dislike"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_subscribe"
+                style="@style/ExoMediaButton2.Subscribe"/>
+
+            <com.ten.ibo.widget.togglebutton.ImageToggleButton
+                android:id="@+id/exo_stats"
+                style="@style/ExoMediaButton2.Stats"/>
+
+        </LinearLayout>
+
+        <!-- quality settings: Video, Audio, Text, Retry -->
+        <LinearLayout
+            android:id="@+id/controls_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <!-- NOTE: all contents will be added dynamically. See PlayerActivity#updateButtonVisibilities() code -->
+
+            <com.ten.ibo.widget.togglebutton.TextToggleButton
+                android:id="@+id/exo_video"
+                style="@style/ExoMediaButton2.Video"/>
+
+            <com.ten.ibo.widget.togglebutton.TextToggleButton
+                android:id="@+id/exo_audio"
+                style="@style/ExoMediaButton2.Audio"/>
+
+            <com.ten.ibo.widget.togglebutton.TextToggleButton
+                android:id="@+id/exo_captions2"
+                style="@style/ExoMediaButton2.Subtitles"/>
+
+            <com.ten.ibo.widget.togglebutton.TextToggleButton
+                android:id="@+id/retry_button"
+                style="@style/ExoMediaButton2.Retry"/>
+
+
+        </LinearLayout>
+
+    </FrameLayout>
+    <!-- end player's controls row -->
+
+    <!-- suggestions row -->
+    <LinearLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp">
+
+        <com.ten.ibo.widget.togglebutton.TextToggleButton
+            android:id="@+id/exo_suggestions"
+            style="@style/ExoMediaButton2.Suggestions"/>
+    </LinearLayout>
+    <!-- end suggestions row -->
+
+</LinearLayout>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="80dp"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/toggle_button_wrapper_height"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:background="@color/transparent"
+    android:id="@+id/toggle_button_wrapper"
+    android:clickable="false">
+
+    <!-- ImageToggleButton -->
+
+    <!-- NOTE: don't use real image here. Or will get unwanted side effects. See ToggleButtonBase.makeImageDisabled() -->
+    <ImageButton
+        android:clickable="false"
+        android:padding="@dimen/toggle_button_padding"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/btn_placeholder"
+        android:background="@color/transparent"
+        android:layout_width="@dimen/toggle_button_width"
+        android:layout_height="@dimen/toggle_button_height"
+        android:id="@+id/image_button"
+        android:visibility="gone"/>
+
+    <TextView
+        android:width="@dimen/toggle_button_desc_width"
+        android:visibility="gone"
+        android:gravity="center_horizontal"
+        android:maxLines="1"
+        android:textSize="@dimen/toggle_button_text_size"
+        android:textColor="@color/white"
+        android:text="Description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/description"/>
+
+    <!-- End ImageToggleButton -->
+
+    <Button
+        android:padding="5dp"
+        android:maxLines="1"
+        android:clickable="false"
+        android:textSize="@dimen/toggle_button_text_size"
+        android:textColor="@color/white"
+        android:background="@color/transparent"
+        android:text="Hello World"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/toggle_button_height"
+        android:visibility="visible"
+        android:id="@+id/text_button"/>
+</LinearLayout>

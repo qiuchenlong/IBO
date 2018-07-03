@@ -10,4 +10,26 @@
     <color name="white">#FFFFFF</color>
     <color name="lightskyblue">#87CEFA</color>
     <color name="greenyellow">#ADFF2F</color>
+
+
+
+
+    <!--<color name="white">#ffffff</color>-->
+    <color name="white_50">#7dffffff</color>
+    <color name="white_70">#b2ffffff</color>
+    <color name="black">#000000</color>
+    <color name="red">#ff0000</color>
+    <color name="transparent">#00ffffff</color>
+    <color name="light_blue">#2793e6</color>
+
+    <dimen name="toggle_button_desc_width">60dp</dimen>
+    <dimen name="toggle_button_width">38dp</dimen>
+    <dimen name="toggle_button_height">38dp</dimen>
+    <dimen name="toggle_button_wrapper_width">60dp</dimen>
+    <dimen name="toggle_button_wrapper_height">60dp</dimen>
+    <dimen name="toggle_button_padding">10dp</dimen>
+    <dimen name="toggle_button_text_size">12sp</dimen>
+
+
+
 </resources>
