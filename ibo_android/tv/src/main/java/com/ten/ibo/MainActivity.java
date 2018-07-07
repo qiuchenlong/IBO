@@ -47,10 +47,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private RelativeLayout mParent;
 //    private ITextureView mITextureView;
 
-//    private String videoUrl = "http://ivi.bupt.edu.cn/hls/cctv5.m3u8"; //http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
+    private String videoUrl = "http://ivi.bupt.edu.cn/hls/cctv5.m3u8"; //http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
 //    private String videoUrl = "http://ivi.bupt.edu.cn/hls/cctv5hd.m3u8"; //http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
 //    private String videoUrl = "http://vd3.bdstatic.com/mda-if5vf4ajrxgbrxui/sc/mda-if5vf4ajrxgbrxui.mp4";
-    private String videoUrl = "http://vd3.bdstatic.com/mda-ig0wemib2civ2hfe/sc/mda-ig0wemib2civ2hfe.mp4";
+//    private String videoUrl = "http://vd3.bdstatic.com/mda-ig0wemib2civ2hfe/sc/mda-ig0wemib2civ2hfe.mp4";
 
 
     MediaPlayer mediaPlayer;

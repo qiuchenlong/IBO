@@ -10,6 +10,7 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.ten.ibo.R;
+import com.ten.ibo.list.DetailListActivity;
 import com.ten.ibo.widget.MetroViewBorderHandler;
 import com.ten.ibo.widget.MetroViewBorderImpl;
 
@@ -80,6 +81,7 @@ public class HomeActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(HomeActivity.this, "repeat..." + String.valueOf(finalI), Toast.LENGTH_LONG).show();
+                    DetailListActivity.show(HomeActivity.this);
                 }
             });
         }
